@@ -26,10 +26,12 @@
   import { currentTheme, currentThemeName, setTheme, getThemeList, type ThemeName } from '../stores/themeStore';
   import { gameMode, battleWinner, setGameMode, type GameMode } from '../stores/gameModeStore';
   import { patterns, type Pattern } from '../patterns/patterns';
+  import PopulationGraph from './PopulationGraph.svelte';
 
   const dispatch = createEventDispatcher<{
     selectPattern: Pattern | null;
     rotatePattern: void;
+    toggleHelp: void;
   }>();
 
   export let selectedPattern: Pattern | null = null;
@@ -254,43 +256,55 @@
         {/each}
       </select>
     </div>
+
+    <button class="btn help-btn" on:click={() => dispatch('toggleHelp')} title="Help (?)">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+      </svg>
+    </button>
   </div>
 
   <div class="stats-row">
     <div class="stat">
       <span class="stat-label">Generation</span>
-      <span class="stat-value">{$generation}</span>
+      <span class="stat-value generation">{$generation.toLocaleString()}</span>
     </div>
     {#if mode === 'battle'}
       <div class="stat">
         <span class="stat-label" style="color: {theme.colors.cell}">Colony 1</span>
-        <span class="stat-value" style="color: {theme.colors.cell}">{$population1}</span>
+        <span class="stat-value" style="color: {theme.colors.cell}">{$population1.toLocaleString()}</span>
       </div>
       <div class="stat">
         <span class="stat-label" style="color: {theme.colors.cellSecondary}">Colony 2</span>
-        <span class="stat-value" style="color: {theme.colors.cellSecondary}">{$population2}</span>
+        <span class="stat-value" style="color: {theme.colors.cellSecondary}">{$population2.toLocaleString()}</span>
       </div>
       <div class="stat">
         <span class="stat-label" style="color: {theme.colors.cell}">Captured</span>
-        <span class="stat-value" style="color: {theme.colors.cell}">{$capturedBy1}</span>
+        <span class="stat-value" style="color: {theme.colors.cell}">{$capturedBy1.toLocaleString()}</span>
       </div>
       <div class="stat">
         <span class="stat-label" style="color: {theme.colors.cellSecondary}">Captured</span>
-        <span class="stat-value" style="color: {theme.colors.cellSecondary}">{$capturedBy2}</span>
+        <span class="stat-value" style="color: {theme.colors.cellSecondary}">{$capturedBy2.toLocaleString()}</span>
       </div>
     {:else}
       <div class="stat">
         <span class="stat-label">Population</span>
-        <span class="stat-value">{$population}</span>
+        <span class="stat-value">{$population.toLocaleString()}</span>
       </div>
     {/if}
-    <div class="stat">
+    <div class="stat stat-indicator">
       <span class="stat-label">Births</span>
-      <span class="stat-value births">+{$births}</span>
+      <span class="stat-value births">
+        <span class="indicator" class:active={$births > 0}>▲</span>
+        +{$births.toLocaleString()}
+      </span>
     </div>
-    <div class="stat">
+    <div class="stat stat-indicator">
       <span class="stat-label">Deaths</span>
-      <span class="stat-value deaths">−{$deaths}</span>
+      <span class="stat-value deaths">
+        <span class="indicator" class:active={$deaths > 0}>▼</span>
+        −{$deaths.toLocaleString()}
+      </span>
     </div>
     {#if selectedPattern}
       <div class="stat pattern-info">
@@ -310,6 +324,12 @@
         {/if}
       </div>
     {/if}
+    {#if mode !== 'battle'}
+      <div class="stat stat-graph">
+        <span class="stat-label">History</span>
+        <PopulationGraph width={160} height={40} />
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -326,8 +346,20 @@
   .controls-row {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 16px;
     flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    .controls-row {
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .controls-row {
+      gap: 8px;
+    }
   }
 
   .control-group {
@@ -346,8 +378,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
     gap: 4px;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.95);
   }
 
   .btn:hover:not(:disabled) {
@@ -392,6 +428,20 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .speed-control input[type='range'] {
+      width: 80px;
+    }
+
+    .zoom-level {
+      display: none;
+    }
+
+    .pattern-btn {
+      min-width: 90px;
+    }
   }
 
   .speed-control label,
@@ -586,8 +636,25 @@
 
   .stats-row {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  @media (max-width: 900px) {
+    .stats-row {
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .stats-row {
+      gap: 12px;
+    }
+
+    .stat-graph {
+      display: none;
+    }
   }
 
   .stat {
@@ -608,6 +675,7 @@
     font-weight: 600;
     color: var(--ui-text);
     font-variant-numeric: tabular-nums;
+    transition: color 0.2s ease;
   }
 
   .stat-value.births {
@@ -621,5 +689,40 @@
   .pattern-info .stat-value {
     font-size: 14px;
     color: var(--ui-accent);
+  }
+
+  .stat-indicator .stat-value {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .indicator {
+    font-size: 10px;
+    opacity: 0.3;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .indicator.active {
+    opacity: 1;
+    animation: bounce 0.3s ease;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  .stat-graph {
+    margin-left: auto;
+  }
+
+  .generation {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .help-btn {
+    padding: 6px;
+    margin-left: 8px;
   }
 </style>

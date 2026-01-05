@@ -215,13 +215,24 @@
   function drawCells(offsetX: number, offsetY: number) {
     const padding = theme.effects.cellBorderRadius > 0 ? 1 : 0.5;
 
+    // Calculate visible bounds in grid coordinates for culling
+    const minGridX = Math.floor(-offsetX / effectiveCellSize) - 1;
+    const maxGridX = Math.ceil((canvas.width - offsetX) / effectiveCellSize) + 1;
+    const minGridY = Math.floor(-offsetY / effectiveCellSize) - 1;
+    const maxGridY = Math.ceil((canvas.height - offsetY) / effectiveCellSize) + 1;
+
+    // Filter function for viewport culling
+    const isVisible = (cell: { x: number; y: number }) =>
+      cell.x >= minGridX && cell.x <= maxGridX &&
+      cell.y >= minGridY && cell.y <= maxGridY;
+
     if (isBattleMode) {
       // Battle mode: draw colored cells
       const cells = getColoredCells();
 
-      // Group cells by color for batch drawing
-      const color1Cells = cells.filter(c => c.color === 1);
-      const color2Cells = cells.filter(c => c.color === 2);
+      // Group cells by color and filter by visibility
+      const color1Cells = cells.filter(c => c.color === 1 && isVisible(c));
+      const color2Cells = cells.filter(c => c.color === 2 && isVisible(c));
 
       // Draw color 1 cells
       ctx.fillStyle = theme.colors.cell;
@@ -241,8 +252,8 @@
       drawCellBatch(color2Cells, offsetX, offsetY, padding);
       ctx.shadowBlur = 0;
     } else {
-      // Classic mode: all cells same color
-      const cells = getLivingCells();
+      // Classic mode: all cells same color - filter by visibility
+      const cells = getLivingCells().filter(isVisible);
       ctx.fillStyle = theme.colors.cell;
 
       if (theme.effects.cellGlow && effectiveCellSize >= 6) {
@@ -259,37 +270,19 @@
     const radius = theme.effects.cellBorderRadius > 0 && effectiveCellSize >= 6
       ? Math.min(theme.effects.cellBorderRadius, (effectiveCellSize - padding * 2) / 4)
       : 0;
+    const cellDrawSize = effectiveCellSize - padding * 2;
 
-    cells.forEach((cell) => {
-      const screenX = offsetX + cell.x * effectiveCellSize;
-      const screenY = offsetY + cell.y * effectiveCellSize;
+    // Batch drawing - cells are already viewport-culled
+    for (const cell of cells) {
+      const screenX = offsetX + cell.x * effectiveCellSize + padding;
+      const screenY = offsetY + cell.y * effectiveCellSize + padding;
 
-      // Only draw if visible
-      if (
-        screenX + effectiveCellSize >= 0 &&
-        screenX <= canvas.width &&
-        screenY + effectiveCellSize >= 0 &&
-        screenY <= canvas.height
-      ) {
-        if (radius > 0) {
-          roundRect(
-            ctx,
-            screenX + padding,
-            screenY + padding,
-            effectiveCellSize - padding * 2,
-            effectiveCellSize - padding * 2,
-            radius
-          );
-        } else {
-          ctx.fillRect(
-            screenX + padding,
-            screenY + padding,
-            effectiveCellSize - padding * 2,
-            effectiveCellSize - padding * 2
-          );
-        }
+      if (radius > 0) {
+        roundRect(ctx, screenX, screenY, cellDrawSize, cellDrawSize, radius);
+      } else {
+        ctx.fillRect(screenX, screenY, cellDrawSize, cellDrawSize);
       }
-    });
+    }
   }
 
   function drawCaptureFlash(offsetX: number, offsetY: number) {
