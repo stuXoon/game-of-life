@@ -124,34 +124,6 @@
   --stats-deaths: {theme.colors.statsDeaths};
 ">
   <div class="controls-row">
-    <div class="control-group mode-control">
-      <label for="mode">Mode</label>
-      <select id="mode" value={mode} on:change={handleModeChange}>
-        <option value="classic">Classic</option>
-        <option value="battle">Battle</option>
-      </select>
-    </div>
-
-    {#if mode === 'battle'}
-      <div class="control-group color-control">
-        <span class="color-label">Colony:</span>
-        <button
-          class="color-btn color-1"
-          class:active={currentPaintColor === 1}
-          on:click={() => selectColor(1)}
-          style="background: {theme.colors.cell}"
-          title="Colony 1"
-        ></button>
-        <button
-          class="color-btn color-2"
-          class:active={currentPaintColor === 2}
-          on:click={() => selectColor(2)}
-          style="background: {theme.colors.cellSecondary}"
-          title="Colony 2"
-        ></button>
-      </div>
-    {/if}
-
     <div class="control-group">
       <button class="btn primary" on:click={togglePlayPause} title={running ? 'Pause' : 'Play'}>
         {#if running}
@@ -239,6 +211,34 @@
         {/if}
       </div>
     </div>
+
+    <div class="control-group mode-control">
+      <label for="mode">Mode</label>
+      <select id="mode" value={mode} on:change={handleModeChange}>
+        <option value="classic">Classic</option>
+        <option value="battle">Battle</option>
+      </select>
+    </div>
+
+    {#if mode === 'battle'}
+      <div class="control-group color-control">
+        <span class="color-label">Colony:</span>
+        <button
+          class="color-btn color-1"
+          class:active={currentPaintColor === 1}
+          on:click={() => selectColor(1)}
+          style="background: {theme.colors.cell}"
+          title="Colony 1"
+        ></button>
+        <button
+          class="color-btn color-2"
+          class:active={currentPaintColor === 2}
+          on:click={() => selectColor(2)}
+          style="background: {theme.colors.cellSecondary}"
+          title="Colony 2"
+        ></button>
+      </div>
+    {/if}
 
     <div class="control-group zoom-control">
       <button class="btn small" on:click={zoomOut} title="Zoom Out">−</button>
@@ -425,9 +425,18 @@
   }
 
   .speed-control {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 6px;
+  }
+
+  .speed-control label {
+    font-size: 12px;
+    color: var(--ui-text-muted);
+    white-space: nowrap;
+  }
+
+  .speed-control input[type='range'] {
+    width: 100px;
+    accent-color: var(--ui-accent);
   }
 
   @media (max-width: 600px) {
@@ -444,32 +453,24 @@
     }
   }
 
-  .speed-control label,
-  .theme-control label {
-    font-size: 12px;
-    color: var(--ui-text-muted);
-  }
-
-  .speed-control input[type='range'] {
-    width: 120px;
-    accent-color: var(--ui-accent);
-  }
-
   .zoom-control {
     margin-left: auto;
   }
 
   .zoom-level {
-    min-width: 50px;
+    min-width: 45px;
     text-align: center;
     font-size: 12px;
     color: var(--ui-text-muted);
   }
 
   .theme-control {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 6px;
+  }
+
+  .theme-control label {
+    font-size: 12px;
+    color: var(--ui-text-muted);
   }
 
   .theme-control select {
@@ -487,9 +488,7 @@
   }
 
   .mode-control {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 6px;
   }
 
   .mode-control label {
@@ -636,20 +635,20 @@
 
   .stats-row {
     display: flex;
-    gap: 20px;
+    gap: 24px;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: center;
   }
 
   @media (max-width: 900px) {
     .stats-row {
-      gap: 16px;
+      gap: 18px;
     }
   }
 
   @media (max-width: 600px) {
     .stats-row {
-      gap: 12px;
+      gap: 14px;
     }
 
     .stat-graph {
@@ -659,8 +658,8 @@
 
   .stat {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: baseline;
+    gap: 6px;
   }
 
   .stat-label {
@@ -671,7 +670,7 @@
   }
 
   .stat-value {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--ui-text);
     font-variant-numeric: tabular-nums;
@@ -715,6 +714,9 @@
 
   .stat-graph {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .generation {
