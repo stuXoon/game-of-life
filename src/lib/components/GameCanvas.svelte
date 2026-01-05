@@ -23,7 +23,6 @@
   import { currentTheme } from '../stores/themeStore';
   import { gameMode } from '../stores/gameModeStore';
   import type { Pattern } from '../patterns/patterns';
-  import { rotatePattern, centerPattern } from '../patterns/patterns';
 
   // Pattern placement props
   export let selectedPattern: Pattern | null = null;
@@ -50,6 +49,9 @@
   let flashCells: { x: number; y: number; toColor: 1 | 2; alpha: number }[] = [];
   let flashStartTime = 0;
   const FLASH_DURATION = 400; // ms
+
+  // Zoom sensitivity (lower = less sensitive)
+  const ZOOM_SENSITIVITY = 0.03;
 
   // Reactive values
   let currentZoom: number;
@@ -507,6 +509,17 @@
   function handleWheel(e: WheelEvent) {
     e.preventDefault();
 
+    // macOS trackpad: 2-finger scroll = pan (ctrlKey false), pinch = zoom (ctrlKey true)
+    // Mouse wheel: always zoom
+    const isTrackpadPan = !e.ctrlKey && (Math.abs(e.deltaX) > 0 || e.deltaMode === 0);
+
+    if (isTrackpadPan && Math.abs(e.deltaX) + Math.abs(e.deltaY) > 0) {
+      // Trackpad pan: invert for natural scrolling feel
+      pan(-e.deltaX / currentZoom, -e.deltaY / currentZoom);
+      return;
+    }
+
+    // Zoom (mouse wheel or trackpad pinch)
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -518,7 +531,7 @@
     const gridYBefore = (mouseY - offsetYBefore) / effectiveCellSize;
 
     // Apply zoom
-    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const zoomFactor = 1 + (e.deltaY > 0 ? -ZOOM_SENSITIVITY : ZOOM_SENSITIVITY);
     const newZoom = Math.max(0.1, Math.min(5, currentZoom * zoomFactor));
     setZoom(newZoom);
 
