@@ -48,6 +48,15 @@
 
     <div class="content">
       <section>
+        <h3>Rules</h3>
+        <ul>
+          <li>Cell with 2-3 neighbors survives</li>
+          <li>Dead cell with exactly 3 neighbors is born</li>
+          <li>All other cells die</li>
+        </ul>
+      </section>
+
+      <section>
         <h3>Controls</h3>
         <ul>
           <li><strong>Click</strong> - Toggle cell on/off</li>
@@ -82,15 +91,6 @@
       <section>
         <h3>Patterns</h3>
         <p>Select a pattern from the dropdown, then click to place. Use rotate button for orientation.</p>
-      </section>
-
-      <section>
-        <h3>Rules</h3>
-        <ul>
-          <li>Cell with 2-3 neighbors survives</li>
-          <li>Dead cell with exactly 3 neighbors is born</li>
-          <li>All other cells die</li>
-        </ul>
       </section>
     </div>
   </div>
